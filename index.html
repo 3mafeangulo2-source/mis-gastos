@@ -239,6 +239,8 @@
       </button>
     </div>
 
+    <div class="banner-sub" id="homeCarryoverNote" style="margin: -10px 4px 14px;"></div>
+
     <button class="quick-mini" data-goto="page-income" style="width:100%; flex-direction:row; justify-content:center; gap:10px; margin-bottom:18px;">
       <span class="qm-icon" style="background:var(--sky)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h13M13 3l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 17H7M11 13l-4 4 4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
       <span class="qt" style="font-size:13px;">Ingresos y préstamos</span>
@@ -354,6 +356,9 @@
       </div>
       <div id="expenseList"></div>
     </div>
+
+    <div class="section-head"><h2>Historial mensual</h2></div>
+    <div class="card" id="monthlyHistoryList"><div class="loading">Cargando...</div></div>
   </div>
 
   <!-- ===== PÁGINA: DEUDAS ===== -->
@@ -384,6 +389,11 @@
 
     <div class="section-head"><h2>Tus deudas</h2></div>
     <div id="debtsList"><div class="loading">Cargando...</div></div>
+
+    <div id="debtsPaidSection" style="display:none;">
+      <div class="section-head"><h2>Pagadas</h2></div>
+      <div id="debtsPaidList"></div>
+    </div>
   </div>
 
   <!-- ===== PÁGINA: INGRESOS Y PRÉSTAMOS ===== -->
@@ -532,7 +542,8 @@ const ICONS = {
   book: '<path d="M4 5a2 2 0 012-2h11v16H6a2 2 0 00-2 2V5z" stroke-linejoin="round"/><path d="M17 3v16"/><path d="M7 7h6M7 10h6" stroke-linecap="round"/>',
   sparkle: '<path d="M12 3l1.8 5.4L19 10l-5.2 1.6L12 17l-1.8-5.4L5 10l5.2-1.6L12 3z" stroke-linejoin="round"/>',
   exchange: '<path d="M4 7h13M13 3l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 17H7M11 13l-4 4 4 4" stroke-linecap="round" stroke-linejoin="round"/>',
-  trend: '<path d="M3 17l6-6 4 4 8-8" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 7h6v6" stroke-linecap="round" stroke-linejoin="round"/>'
+  trend: '<path d="M3 17l6-6 4 4 8-8" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 7h6v6" stroke-linecap="round" stroke-linejoin="round"/>',
+  receipt: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z" stroke-linejoin="round"/><path d="M9 8h6M9 12h6M9 16h4" stroke-linecap="round"/>'
 };
 function svgIcon(name, size){
   size = size || 17;
@@ -559,6 +570,7 @@ const CATS = {
   'Servicios':       { icon:'bolt',     bg:'var(--sky)' },
   'Educación':       { icon:'book',     bg:'var(--lavender)' },
   'Préstamo':        { icon:'exchange', bg:'var(--butter)' },
+  'Pago de deuda':   { icon:'receipt',  bg:'var(--lavender)' },
   'Otros':           { icon:'sparkle',  bg:'var(--peach)' }
 };
 const catInfo = (name) => CATS[name] || { icon:'sparkle', bg:'var(--peach)' };
@@ -634,6 +646,28 @@ document.getElementById('otherDateToggle').addEventListener('click', function(){
 });
 document.getElementById('fDate').addEventListener('change', function(){ selectedAddDate = null; buildDayPicker(); });
 
+/* ---------- Arrastre de saldo entre meses ---------- */
+function monthKeyOf(y, m0){ return y + '-' + String(m0+1).padStart(2,'0'); }
+function computeCarryoverIntoMonth(targetMonthKey){
+  const allDates = [...expenses.map(e=>e.date), ...incomes.map(i=>i.date)].filter(Boolean);
+  if(allDates.length === 0) return 0;
+  const minDate = allDates.reduce((a,b)=> a < b ? a : b);
+  const [ty, tm] = targetMonthKey.split('-').map(Number);
+  let cy = parseInt(minDate.slice(0,4),10);
+  let cm0 = parseInt(minDate.slice(5,7),10) - 1;
+  let carry = 0;
+  while(cy < ty || (cy === ty && cm0 < (tm-1))){
+    const mk = monthKeyOf(cy, cm0);
+    const inc = incomes.filter(i => i.date.slice(0,7) === mk).reduce((s,i)=> s + i.amount, 0);
+    const exp = expenses.filter(e => e.date.slice(0,7) === mk).reduce((s,e)=> s + e.amount, 0);
+    const bal = inc + carry - exp;
+    carry = bal > 0 ? bal : 0;
+    cm0++;
+    if(cm0 > 11){ cm0 = 0; cy++; }
+  }
+  return carry;
+}
+
 /* ---------- Render: Home ---------- */
 function renderHome(){
   document.getElementById('greetingEyebrow').textContent = 'Hola, ' + settingsName;
@@ -645,8 +679,14 @@ function renderHome(){
   document.getElementById('homeTotal').textContent = fmtMoney(total);
 
   const monthIncomesHome = incomes.filter(i => i.date.slice(0,7) === mk);
-  const incomeTotal = monthIncomesHome.reduce((s,i)=> s + i.amount, 0);
+  const incomeRaw = monthIncomesHome.reduce((s,i)=> s + i.amount, 0);
+  const carryover = computeCarryoverIntoMonth(mk);
+  const incomeTotal = incomeRaw + carryover;
   document.getElementById('homeIncomeTotal').textContent = fmtMoney(incomeTotal);
+  const carryoverNoteEl = document.getElementById('homeCarryoverNote');
+  if(carryoverNoteEl){
+    carryoverNoteEl.textContent = carryover > 0 ? 'Incluye ' + fmtMoney(carryover) + ' que te quedó del mes anterior.' : '';
+  }
 
   const balance = incomeTotal - total;
   const balanceEl = document.getElementById('homeBalance');
@@ -754,29 +794,48 @@ function remainingOf(item){
   const paid = (item.payments||[]).reduce((s,p)=> s + p.amount, 0);
   return Math.max(0, item.amount - paid);
 }
+function debtItemHtml(d){
+  const paid = (d.payments||[]).reduce((s,p)=> s + p.amount, 0);
+  const remaining = remainingOf(d);
+  const pct = d.amount > 0 ? Math.min(100, (paid/d.amount*100)) : 100;
+  const isPaid = remaining <= 0;
+  return '<div class="debt-item '+(isPaid?'paid':'')+'" data-id="'+d.id+'">'
+    + '<div class="debt-head"><div><div class="debt-name">'+escapeHtml(d.name)+'</div>'+(d.note?'<div class="debt-note">'+escapeHtml(d.note)+'</div>':'')+'</div>'+(isPaid?'<span class="debt-badge">Pagada</span>':'')+'</div>'
+    + '<div class="debt-nums"><span>Original: '+fmtMoney(d.amount)+'</span><span>Pagado: '+fmtMoney(paid)+'</span></div>'
+    + '<div class="row-track"><div class="row-fill" style="width:'+pct.toFixed(1)+'%"></div></div>'
+    + '<div class="debt-nums" style="margin-top:8px;"><span>Restante</span><span class="debt-remaining">'+fmtMoney(remaining)+'</span></div>'
+    + (!isPaid ? ('<div class="debt-actions"><button class="btn-ghost" data-toggle-pay="'+d.id+'">Registrar pago</button><button class="btn-text" data-delete-debt="'+d.id+'">Eliminar</button></div>'
+        + '<div class="pay-row" id="pay-'+d.id+'"><input type="number" id="pay-amount-'+d.id+'" placeholder="Monto del pago" inputmode="decimal" step="0.01" min="0"><button class="pay-btn" data-confirm-pay="'+d.id+'">Pagar</button></div>')
+      : '<div class="debt-actions"><button class="btn-text" data-delete-debt="'+d.id+'">Eliminar</button></div>');
+}
+function attachDebtListeners(container){
+  container.querySelectorAll('[data-toggle-pay]').forEach(btn => btn.addEventListener('click', () => document.getElementById('pay-'+btn.dataset.togglePay).classList.toggle('open')));
+  container.querySelectorAll('[data-confirm-pay]').forEach(btn => btn.addEventListener('click', () => registerPayment(btn.dataset.confirmPay)));
+  container.querySelectorAll('[data-delete-debt]').forEach(btn => btn.addEventListener('click', () => deleteDebt(btn.dataset.deleteDebt)));
+}
 function renderDebts(){
-  const totalPending = debts.reduce((s,d)=> s + remainingOf(d), 0);
+  const activeDebts = debts.filter(d => remainingOf(d) > 0).sort((a,b)=> b.dateCreated.localeCompare(a.dateCreated));
+  const paidDebts = debts.filter(d => remainingOf(d) <= 0).sort((a,b)=> b.dateCreated.localeCompare(a.dateCreated));
+  const totalPending = activeDebts.reduce((s,d)=> s + remainingOf(d), 0);
   document.getElementById('debtsTotal').textContent = fmtMoney(totalPending);
+
   const listEl = document.getElementById('debtsList');
-  if(debts.length === 0){ listEl.innerHTML = '<div class="card"><div class="empty-state">'+mascot(64)+'<p>No tienes deudas registradas.</p></div></div>'; return; }
-  const sorted = [...debts].sort((a,b)=>{ const ra=remainingOf(a), rb=remainingOf(b); if((ra===0)!==(rb===0)) return ra===0?1:-1; return b.dateCreated.localeCompare(a.dateCreated); });
-  listEl.innerHTML = sorted.map(d => {
-    const paid = (d.payments||[]).reduce((s,p)=> s + p.amount, 0);
-    const remaining = remainingOf(d);
-    const pct = d.amount > 0 ? Math.min(100, (paid/d.amount*100)) : 100;
-    const isPaid = remaining <= 0;
-    return '<div class="debt-item '+(isPaid?'paid':'')+'" data-id="'+d.id+'">'
-      + '<div class="debt-head"><div><div class="debt-name">'+escapeHtml(d.name)+'</div>'+(d.note?'<div class="debt-note">'+escapeHtml(d.note)+'</div>':'')+'</div>'+(isPaid?'<span class="debt-badge">Pagada</span>':'')+'</div>'
-      + '<div class="debt-nums"><span>Original: '+fmtMoney(d.amount)+'</span><span>Pagado: '+fmtMoney(paid)+'</span></div>'
-      + '<div class="row-track"><div class="row-fill" style="width:'+pct.toFixed(1)+'%"></div></div>'
-      + '<div class="debt-nums" style="margin-top:8px;"><span>Restante</span><span class="debt-remaining">'+fmtMoney(remaining)+'</span></div>'
-      + (!isPaid ? ('<div class="debt-actions"><button class="btn-ghost" data-toggle-pay="'+d.id+'">Registrar pago</button><button class="btn-text" data-delete-debt="'+d.id+'">Eliminar</button></div>'
-          + '<div class="pay-row" id="pay-'+d.id+'"><input type="number" id="pay-amount-'+d.id+'" placeholder="Monto del pago" inputmode="decimal" step="0.01" min="0"><button class="pay-btn" data-confirm-pay="'+d.id+'">Pagar</button></div>')
-        : '<div class="debt-actions"><button class="btn-text" data-delete-debt="'+d.id+'">Eliminar</button></div>');
-  }).join('');
-  listEl.querySelectorAll('[data-toggle-pay]').forEach(btn => btn.addEventListener('click', () => document.getElementById('pay-'+btn.dataset.togglePay).classList.toggle('open')));
-  listEl.querySelectorAll('[data-confirm-pay]').forEach(btn => btn.addEventListener('click', () => registerPayment(btn.dataset.confirmPay)));
-  listEl.querySelectorAll('[data-delete-debt]').forEach(btn => btn.addEventListener('click', () => deleteDebt(btn.dataset.deleteDebt)));
+  if(activeDebts.length === 0){
+    listEl.innerHTML = '<div class="card"><div class="empty-state">'+mascot(64)+'<p>No tienes deudas pendientes.</p></div></div>';
+  } else {
+    listEl.innerHTML = activeDebts.map(debtItemHtml).join('');
+    attachDebtListeners(listEl);
+  }
+
+  const paidSection = document.getElementById('debtsPaidSection');
+  const paidListEl = document.getElementById('debtsPaidList');
+  if(paidDebts.length === 0){
+    paidSection.style.display = 'none';
+  } else {
+    paidSection.style.display = 'block';
+    paidListEl.innerHTML = paidDebts.map(debtItemHtml).join('');
+    attachDebtListeners(paidListEl);
+  }
 }
 async function registerPayment(debtId){
   const input = document.getElementById('pay-amount-' + debtId);
@@ -787,8 +846,9 @@ async function registerPayment(debtId){
   const applied = Math.min(amount, remainingOf(debt));
   debt.payments = debt.payments || [];
   debt.payments.push({ id: Date.now().toString(36), amount: applied, date: todayISO() });
-  renderAll(); await saveDebts();
-  showToast(applied < amount ? 'Se registró '+fmtMoney(applied)+' (saldaba la deuda).' : 'Pago registrado.');
+  expenses.push({ id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), amount: applied, category: 'Pago de deuda', store: 'Pago a '+debt.name, payment: '', date: todayISO(), note: '' });
+  renderAll(); await saveDebts(); await saveExpenses();
+  showToast(applied < amount ? 'Se registró '+fmtMoney(applied)+' (saldaba la deuda).' : 'Pago registrado como gasto del mes.');
 }
 async function deleteDebt(debtId){ debts = debts.filter(d => d.id !== debtId); renderAll(); await saveDebts(); showToast('Deuda eliminada.'); }
 async function addDebt(){
@@ -1031,7 +1091,39 @@ document.getElementById('settingsNameInput').addEventListener('input', function(
   renderHome();
 });
 
-function renderAll(){ renderHome(); renderSummary(); renderDebts(); renderIncome(); }
+function monthLabelFromKey(mk){
+  const [y,m] = mk.split('-').map(Number);
+  return monthNameFmt.format(new Date(y, m-1, 1));
+}
+function renderMonthlyHistory(){
+  const listEl = document.getElementById('monthlyHistoryList');
+  if(!listEl) return;
+  const set = new Set();
+  expenses.forEach(e => set.add(e.date.slice(0,7)));
+  incomes.forEach(i => set.add(i.date.slice(0,7)));
+  set.add(monthKey(new Date()));
+  const months = [...set].sort((a,b)=> b.localeCompare(a));
+  const nowMk = monthKey(new Date());
+  if(months.length === 0){
+    listEl.innerHTML = '<div class="empty-state">'+mascot(50)+'<p>Aún no hay historial.</p></div>';
+    return;
+  }
+  listEl.innerHTML = months.map(mk => {
+    const incRaw = incomes.filter(i => i.date.slice(0,7) === mk).reduce((s,i)=> s + i.amount, 0);
+    const exp = expenses.filter(e => e.date.slice(0,7) === mk).reduce((s,e)=> s + e.amount, 0);
+    const carry = computeCarryoverIntoMonth(mk);
+    const inc = incRaw + carry;
+    const bal = inc - exp;
+    const label = monthLabelFromKey(mk) + (mk === nowMk ? ' · actual' : '');
+    const carryTxt = carry > 0 ? ' · incluye ' + fmtMoney(carry) + ' arrastrado' : '';
+    return '<div class="list-row">'
+      + '<div class="row-body"><div class="row-title" style="text-transform:capitalize;">'+label+'</div>'
+      + '<div class="row-sub">Ingresos '+fmtMoney(inc)+' · Gastos '+fmtMoney(exp)+carryTxt+'</div></div>'
+      + '<span class="pill" style="background:'+(bal<0?'var(--danger)':'var(--ink)')+'">'+(bal<0?'-':'')+fmtMoney(Math.abs(bal))+'</span>'
+      + '</div>';
+  }).join('');
+}
+function renderAll(){ renderHome(); renderSummary(); renderDebts(); renderIncome(); renderMonthlyHistory(); }
 
 (async function init(){
   try{ settingsName = localStorage.getItem('settings:name') || 'Sol'; } catch(e){ settingsName = 'Sol'; }
