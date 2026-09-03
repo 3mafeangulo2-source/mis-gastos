@@ -998,7 +998,8 @@ const PALETTES = {
   beige: { label:'Beige', bg:'#F5F1EA', pink:'#E4D3B8', pinkDeep:'#C7A876', lavender:'#EDE6D8', peach:'#F3E2CE', mint:'#E3E6D8', sky:'#E1DED2', butter:'#F6ECD3' }
 };
 function applyPalette(key, save){
-  const p = PALETTES[key]; if(!p) return;
+  const validKey = PALETTES[key] ? key : 'rosa';
+  const p = PALETTES[validKey];
   const root = document.documentElement.style;
   root.setProperty('--bg', p.bg);
   root.setProperty('--pink', p.pink);
@@ -1008,8 +1009,8 @@ function applyPalette(key, save){
   root.setProperty('--mint', p.mint);
   root.setProperty('--sky', p.sky);
   root.setProperty('--butter', p.butter);
-  currentPalette = key;
-  if(save){ try{ localStorage.setItem('settings:palette', key); } catch(e){} }
+  currentPalette = validKey;
+  if(save || validKey !== key){ try{ localStorage.setItem('settings:palette', validKey); } catch(e){} }
   renderPaletteRow();
   renderHome();
 }
