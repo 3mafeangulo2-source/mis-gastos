@@ -484,6 +484,10 @@
     <div class="card">
       <div class="palette-row" id="paletteRow"></div>
     </div>
+
+    <div style="text-align:center; margin-top:20px;">
+      <span style="font-size:11px; color:var(--muted);">Versión: 03 sep 2026, 8:10 PM</span>
+    </div>
   </div>
 
 </div>
@@ -806,7 +810,8 @@ function debtItemHtml(d){
     + '<div class="debt-nums" style="margin-top:8px;"><span>Restante</span><span class="debt-remaining">'+fmtMoney(remaining)+'</span></div>'
     + (!isPaid ? ('<div class="debt-actions"><button class="btn-ghost" data-toggle-pay="'+d.id+'">Registrar pago</button><button class="btn-text" data-delete-debt="'+d.id+'">Eliminar</button></div>'
         + '<div class="pay-row" id="pay-'+d.id+'"><input type="number" id="pay-amount-'+d.id+'" placeholder="Monto del pago" inputmode="decimal" step="0.01" min="0"><button class="pay-btn" data-confirm-pay="'+d.id+'">Pagar</button></div>')
-      : '<div class="debt-actions"><button class="btn-text" data-delete-debt="'+d.id+'">Eliminar</button></div>');
+      : '<div class="debt-actions"><button class="btn-text" data-delete-debt="'+d.id+'">Eliminar</button></div>')
+    + '</div>';
 }
 function attachDebtListeners(container){
   container.querySelectorAll('[data-toggle-pay]').forEach(btn => btn.addEventListener('click', () => document.getElementById('pay-'+btn.dataset.togglePay).classList.toggle('open')));
@@ -890,7 +895,8 @@ function renderIncome(){
         + '<div class="debt-nums" style="margin-top:8px;"><span>Por cobrar</span><span class="debt-remaining">'+fmtMoney(remaining)+'</span></div>'
         + (!isPaid ? ('<div class="debt-actions"><button class="btn-ghost" data-toggle-loanpay="'+l.id+'">Registrar cobro</button><button class="btn-text" data-delete-loan="'+l.id+'">Eliminar</button></div>'
             + '<div class="pay-row" id="loanpay-'+l.id+'"><input type="number" id="loanpay-amount-'+l.id+'" placeholder="Monto cobrado" inputmode="decimal" step="0.01" min="0"><button class="pay-btn" data-confirm-loanpay="'+l.id+'">Cobrar</button></div>')
-          : '<div class="debt-actions"><button class="btn-text" data-delete-loan="'+l.id+'">Eliminar</button></div>');
+          : '<div class="debt-actions"><button class="btn-text" data-delete-loan="'+l.id+'">Eliminar</button></div>')
+        + '</div>';
     }).join('');
     loansListEl.querySelectorAll('[data-toggle-loanpay]').forEach(btn => btn.addEventListener('click', () => document.getElementById('loanpay-'+btn.dataset.toggleLoanpay).classList.toggle('open')));
     loansListEl.querySelectorAll('[data-confirm-loanpay]').forEach(btn => btn.addEventListener('click', () => registerLoanPayment(btn.dataset.confirmLoanpay)));
