@@ -26,6 +26,9 @@
     --muted: #8B8792;
     --line: #ECE7EE;
     --danger: #E2685A;
+    --danger-bg: #F6D9D4;
+    --warn: #F7DEC0;
+    --warn-deep: #E3A15C;
     --shadow: 0 6px 24px -10px rgba(27,20,32,0.12);
   }
   *{box-sizing:border-box;}
@@ -38,7 +41,7 @@
     display:flex; justify-content:center;
   }
   svg{ display:block; }
-  .app{ width:100%; max-width: 480px; min-height:100vh; padding-bottom: 96px; }
+  .app{ width:100%; max-width: 480px; min-height:100vh; padding-bottom: 96px; padding-top: max(14px, env(safe-area-inset-top)); }
   .page{ display:none; padding: 20px 16px 6px; animation: fadeIn 0.2s ease; }
   .page.active{ display:block; }
   @keyframes fadeIn{ from{ opacity:0; transform: translateY(6px);} to{opacity:1; transform:translateY(0);} }
@@ -52,6 +55,7 @@
     border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;
   }
   .icon-circle-btn:active{ transform: scale(0.94); }
+  .icon-circle-btn.ghost{ background: var(--card); color: var(--ink); box-shadow: var(--shadow); }
 
   .two-col{ display:flex; gap:12px; margin-bottom: 18px; }
   .stat-card{
@@ -112,7 +116,8 @@
   }
   input:focus, select:focus{ border-color: var(--ink); background:#fff; }
   input[type="number"]{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 19px; }
-  input[type="date"]{ min-width:0; max-width:100%; font-size:14px; padding-right:8px; }
+  .date-field{ background: var(--bg); border-radius:14px; overflow:hidden; width:100%; }
+  .date-field input[type="date"]{ width:100%; max-width:100%; min-width:0; background:transparent; border:none; padding:12px 10px; font-size:14px; -webkit-appearance:none; appearance:none; display:block; }
   .amount-wrap{ position:relative; }
   .amount-wrap .currency{ position:absolute; left:14px; top:50%; transform:translateY(-50%); color: var(--muted); font-family: ui-monospace, monospace; font-size:19px; font-weight:700;}
   .amount-wrap input{ padding-left: 30px; }
@@ -147,7 +152,7 @@
   .del-x{ background:none; border:none; color: var(--muted); font-size: 15px; cursor:pointer; padding: 4px; line-height:1; }
   .del-x:hover{ color: var(--danger); }
 
-  .debt-item{ border: 1.5px solid var(--line); border-radius: 18px; padding: 15px; margin-bottom: 12px; }
+  .debt-item{ background: var(--card); border-radius: 18px; padding: 15px; margin-bottom: 12px; box-shadow: var(--shadow); }
   .debt-item.paid{ opacity:0.55; }
   .debt-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
   .debt-name{ font-size: 14.5px; font-weight:700; }
@@ -169,6 +174,13 @@
   .toast.show{ opacity:1; }
   .loading{ text-align:center; color: var(--muted); padding: 20px 0; font-size:13px; }
 
+  .palette-row{ display:flex; gap:10px; }
+  .palette-swatch{ flex:1; border:2px solid var(--line); border-radius:16px; padding:12px 6px; background: var(--card); cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:8px; font-family:inherit; }
+  .palette-swatch.selected{ border-color: var(--ink); }
+  .swatch-dots{ display:flex; gap:4px; }
+  .swatch-dot{ width:16px; height:16px; border-radius:50%; }
+  .swatch-label{ font-size:11.5px; font-weight:700; color: var(--ink); }
+
   .tabbar{ position: fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--line); z-index: 40; padding-bottom: env(safe-area-inset-bottom); }
   .tabbar-inner{ width:100%; max-width:480px; margin:0 auto; display:flex; padding: 8px 4px 6px; }
   .tab-btn{ flex:1; background:none; border:none; color: var(--muted); cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:6px; padding: 6px 2px; font-family:inherit; }
@@ -184,25 +196,30 @@
   <div class="page active" id="page-home">
     <div class="top-row">
       <div>
-        <div class="eyebrow-muted">Hola, Sol</div>
+        <div class="eyebrow-muted" id="greetingEyebrow">Hola, Sol</div>
         <div class="greeting-name">Esto es lo que has gastado este mes</div>
       </div>
-      <button class="icon-circle-btn" data-goto="page-add" aria-label="Agregar gasto">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
-      </button>
+      <div style="display:flex; gap:8px; flex-shrink:0;">
+        <button class="icon-circle-btn ghost" data-goto="page-settings" aria-label="Ajustes">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9" stroke-linecap="round"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="icon-circle-btn" data-goto="page-add" aria-label="Agregar gasto">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
+        </button>
+      </div>
     </div>
 
     <div class="two-col">
       <button class="stat-card" data-goto="page-summary">
         <div class="stat-icon" style="background:var(--pink)">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="12" width="4" height="8" rx="1"/><rect x="10" y="7" width="4" height="13" rx="1"/><rect x="16" y="3" width="4" height="17" rx="1"/></svg>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="12" width="4" height="8" rx="1" fill="none"/><rect x="10" y="7" width="4" height="13" rx="1" fill="none"/><rect x="16" y="3" width="4" height="17" rx="1" fill="none"/></svg>
         </div>
         <div class="stat-label">Este mes</div>
         <div class="stat-value" id="homeTotal">$0</div>
         <div class="mini-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17L17 7M7 7h10v10" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       </button>
       <button class="stat-card" data-goto="page-debts">
-        <div class="stat-icon" style="background:var(--mint)">
+        <div class="stat-icon" style="background:var(--lavender)">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z" stroke-linejoin="round"/><path d="M9 8h6M9 12h6M9 16h4" stroke-linecap="round"/></svg>
         </div>
         <div class="stat-label">Debes</div>
@@ -211,14 +228,25 @@
       </button>
     </div>
 
-    <div class="card" id="homeTopCategoryCard">
-      <div class="banner-sub" id="homeTopCategory" style="margin-top:0;">Aún no registras gastos este mes.</div>
+    <div class="two-col">
+      <button class="stat-card" data-goto="page-income">
+        <div class="stat-icon" style="background:var(--mint)">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l6-6 4 4 8-8" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 7h6v6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="stat-label">Ingresos</div>
+        <div class="stat-value" id="homeIncomeTotal">$0</div>
+        <div class="mini-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17L17 7M7 7h10v10" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </button>
     </div>
 
     <button class="quick-mini" data-goto="page-income" style="width:100%; flex-direction:row; justify-content:center; gap:10px; margin-bottom:18px;">
       <span class="qm-icon" style="background:var(--sky)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h13M13 3l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 17H7M11 13l-4 4 4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
       <span class="qt" style="font-size:13px;">Ingresos y préstamos</span>
     </button>
+
+    <div class="card" id="homeTopCategoryCard">
+      <div class="banner-sub" id="homeTopCategory" style="margin-top:0;">Aún no registras gastos este mes.</div>
+    </div>
 
     <div class="section-head">
       <h2>Por concepto</h2>
@@ -227,6 +255,17 @@
       </button>
     </div>
     <div class="card" id="homeCategoryList"><div class="loading">Cargando...</div></div>
+
+    <div class="two-col">
+      <button class="stat-card" id="homeBalanceCard" data-goto="page-summary">
+        <div class="stat-icon" id="homeBalanceIcon" style="background:var(--mint)">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v18M7 7l-4 8a4 4 0 008 0l-4-8zM17 7l-4 8a4 4 0 008 0l-4-8z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="stat-label">Balance del mes</div>
+        <div class="stat-value" id="homeBalance">$0</div>
+        <div class="mini-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17L17 7M7 7h10v10" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </button>
+    </div>
 
     <div class="section-head"><h2>Respaldo de datos</h2></div>
     <div class="card">
@@ -268,16 +307,20 @@
       <input type="text" id="fStore" placeholder="Ej. Amazon, Rappi, Éxito...">
 
       <label for="fPayment">App o banco con el que pagaste</label>
-      <input type="text" id="fPayment" list="paymentOptions" placeholder="Ej. Nequi, BBVA, Efectivo...">
-      <datalist id="paymentOptions">
-        <option value="Efectivo"><option value="Tarjeta de débito"><option value="Tarjeta de crédito">
-        <option value="Nequi"><option value="Daviplata"><option value="PayPal">
-      </datalist>
+      <select id="fPayment">
+        <option value="Efectivo">Efectivo</option>
+        <option value="Nu Débito">Nu Débito</option>
+        <option value="Nu Crédito">Nu Crédito</option>
+        <option value="Nequi">Nequi</option>
+        <option value="Rappi Crédito">Rappi Crédito</option>
+        <option value="Davibank Crédito">Davibank Crédito</option>
+        <option value="Otro">Otro</option>
+      </select>
 
       <label>Fecha</label>
       <div class="day-picker" id="dayPicker"></div>
       <button class="other-date-toggle" id="otherDateToggle">Elegir otra fecha</button>
-      <input type="date" id="fDate" style="display:none; margin-top:10px;">
+      <div class="date-field" style="display:none; margin-top:10px;" id="fDateWrap"><input type="date" id="fDate"></div>
 
       <label for="fNote">Nota (opcional)</label>
       <input type="text" id="fNote" placeholder="Detalle adicional">
@@ -369,7 +412,7 @@
       <label for="iSource">Fuente o concepto</label>
       <input type="text" id="iSource" placeholder="Ej. Salario, Freelance, Regalo...">
       <label for="iDate">Fecha</label>
-      <input type="date" id="iDate">
+      <div class="date-field"><input type="date" id="iDate"></div>
       <label for="iNote">Nota (opcional)</label>
       <input type="text" id="iNote" placeholder="Detalle adicional">
       <button class="btn-cta" id="addIncomeBtn">Registrar ingreso
@@ -384,9 +427,17 @@
       <label for="lName">¿A quién le prestas?</label>
       <input type="text" id="lName" placeholder="Nombre de la persona">
       <label for="lPayment">Método de pago (cómo se lo diste)</label>
-      <input type="text" id="lPayment" list="paymentOptions" placeholder="Ej. Nequi, Efectivo...">
+      <select id="lPayment">
+        <option value="Efectivo">Efectivo</option>
+        <option value="Nu Débito">Nu Débito</option>
+        <option value="Nu Crédito">Nu Crédito</option>
+        <option value="Nequi">Nequi</option>
+        <option value="Rappi Crédito">Rappi Crédito</option>
+        <option value="Davibank Crédito">Davibank Crédito</option>
+        <option value="Otro">Otro</option>
+      </select>
       <label for="lDate">Fecha</label>
-      <input type="date" id="lDate">
+      <div class="date-field"><input type="date" id="lDate"></div>
       <label for="lNote">Nota (opcional)</label>
       <input type="text" id="lNote" placeholder="Detalle adicional">
       <button class="btn-cta" id="addLoanBtn">Registrar préstamo
@@ -402,6 +453,29 @@
     <div class="card" id="incomeList"><div class="loading">Cargando...</div></div>
   </div>
 
+  <!-- ===== PÁGINA: AJUSTES ===== -->
+  <div class="page" id="page-settings">
+    <div class="top-row" style="margin-bottom:10px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button class="icon-circle-btn ghost" data-goto="page-home" aria-label="Volver">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="greeting-name" style="font-size:22px;">Ajustes</div>
+      </div>
+    </div>
+
+    <div class="section-head"><h2>Tu nombre</h2></div>
+    <div class="card">
+      <label for="settingsNameInput">¿Cómo quieres que te saludemos?</label>
+      <input type="text" id="settingsNameInput" placeholder="Ej. Sol">
+    </div>
+
+    <div class="section-head"><h2>Paleta de colores</h2></div>
+    <div class="card">
+      <div class="palette-row" id="paletteRow"></div>
+    </div>
+  </div>
+
 </div>
 
 <nav class="tabbar">
@@ -415,7 +489,7 @@
       <span class="tab-dot"></span>
     </button>
     <button class="tab-btn" data-page="page-summary">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="12" width="4" height="8" rx="1"/><rect x="10" y="7" width="4" height="13" rx="1"/><rect x="16" y="3" width="4" height="17" rx="1"/></svg>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="12" width="4" height="8" rx="1" fill="none"/><rect x="10" y="7" width="4" height="13" rx="1" fill="none"/><rect x="16" y="3" width="4" height="17" rx="1" fill="none"/></svg>
       <span class="tab-dot"></span>
     </button>
     <button class="tab-btn" data-page="page-debts">
@@ -444,6 +518,8 @@ let currentMonth = new Date();
 currentMonth.setDate(1);
 let searchTerm = '';
 let selectedAddDate = null;
+let settingsName = 'Sol';
+let currentPalette = 'rosa';
 
 const ICONS = {
   fork: '<path d="M7 2v7a2 2 0 002 2 2 2 0 002-2V2M9 11v11" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 2c-1.7 0-3 2-3 5s1.3 5 3 5" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 12v10" stroke-linecap="round"/>',
@@ -544,26 +620,49 @@ function buildDayPicker(){
     btn.addEventListener('click', () => {
       selectedAddDate = btn.dataset.date;
       document.getElementById('fDate').value = selectedAddDate;
-      document.getElementById('fDate').style.display = 'none';
+      document.getElementById('fDateWrap').style.display = 'none';
       buildDayPicker();
     });
   });
 }
 document.getElementById('otherDateToggle').addEventListener('click', function(){
+  const wrapEl = document.getElementById('fDateWrap');
   const dateInput = document.getElementById('fDate');
-  const showing = dateInput.style.display !== 'none';
-  dateInput.style.display = showing ? 'none' : 'block';
+  const showing = wrapEl.style.display !== 'none';
+  wrapEl.style.display = showing ? 'none' : 'block';
   if(!showing){ selectedAddDate = null; buildDayPicker(); dateInput.focus(); }
 });
 document.getElementById('fDate').addEventListener('change', function(){ selectedAddDate = null; buildDayPicker(); });
 
 /* ---------- Render: Home ---------- */
 function renderHome(){
+  document.getElementById('greetingEyebrow').textContent = 'Hola, ' + settingsName;
+
   const now = new Date();
   const mk = monthKey(now);
   const monthExpenses = expenses.filter(e => e.date.slice(0,7) === mk);
   const total = monthExpenses.reduce((s,e)=> s + e.amount, 0);
   document.getElementById('homeTotal').textContent = fmtMoney(total);
+
+  const monthIncomesHome = incomes.filter(i => i.date.slice(0,7) === mk);
+  const incomeTotal = monthIncomesHome.reduce((s,i)=> s + i.amount, 0);
+  document.getElementById('homeIncomeTotal').textContent = fmtMoney(incomeTotal);
+
+  const balance = incomeTotal - total;
+  const balanceEl = document.getElementById('homeBalance');
+  const balanceCardEl = document.getElementById('homeBalanceCard');
+  const balanceIconEl = document.getElementById('homeBalanceIcon');
+  balanceEl.textContent = (balance < 0 ? '-' : '') + fmtMoney(Math.abs(balance));
+  if(balance < 0){
+    balanceCardEl.style.background = 'var(--danger-bg)';
+    balanceIconEl.style.background = '#fff';
+  } else if(balance <= 1000000){
+    balanceCardEl.style.background = 'var(--warn)';
+    balanceIconEl.style.background = '#fff';
+  } else {
+    balanceCardEl.style.background = 'var(--card)';
+    balanceIconEl.style.background = 'var(--mint)';
+  }
 
   const topEl = document.getElementById('homeTopCategory');
   let byCat = {};
@@ -816,7 +915,7 @@ async function addLoan(){
   await saveExpenses();
   await saveLoans();
   showToast('Préstamo registrado.');
-  document.getElementById('lAmount').value=''; document.getElementById('lName').value=''; document.getElementById('lPayment').value=''; document.getElementById('lNote').value='';
+  document.getElementById('lAmount').value=''; document.getElementById('lName').value=''; document.getElementById('lPayment').value='Efectivo'; document.getElementById('lNote').value='';
   document.getElementById('lDate').value = todayISO();
 }
 document.getElementById('addLoanBtn').addEventListener('click', addLoan);
@@ -838,10 +937,10 @@ async function addExpense(){
   const [y,m] = date.split('-').map(Number);
   currentMonth = new Date(y, m-1, 1);
   renderAll(); await saveExpenses(); showToast('Gasto agregado.');
-  amountInput.value=''; document.getElementById('fStore').value=''; document.getElementById('fPayment').value=''; document.getElementById('fNote').value='';
+  amountInput.value=''; document.getElementById('fStore').value=''; document.getElementById('fPayment').value='Efectivo'; document.getElementById('fNote').value='';
   selectedAddDate = todayISO();
   document.getElementById('fDate').value = selectedAddDate;
-  document.getElementById('fDate').style.display = 'none';
+  document.getElementById('fDateWrap').style.display = 'none';
   buildDayPicker();
   goToPage('page-home');
 }
@@ -892,9 +991,53 @@ document.getElementById('exportBtn').addEventListener('click', exportData);
 document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFile').click());
 document.getElementById('importFile').addEventListener('change', handleImportFile);
 
+/* ---------- Ajustes: nombre y paleta de colores ---------- */
+const PALETTES = {
+  rosa:  { label:'Rosa',  bg:'#F3F0F4', pink:'#F0BEDD', pinkDeep:'#E38FBB', lavender:'#E6E1F5', peach:'#FCE6D8', mint:'#DFF3E9', sky:'#CFDFF2', butter:'#FBF0D2' },
+  azul:  { label:'Azul',  bg:'#F0F3F7', pink:'#BFD9F0', pinkDeep:'#5D93C4', lavender:'#DCE6F5', peach:'#E9EEF5', mint:'#D7EAE6', sky:'#C9DDF2', butter:'#EFE9D6' },
+  beige: { label:'Beige', bg:'#F5F1EA', pink:'#E4D3B8', pinkDeep:'#C7A876', lavender:'#EDE6D8', peach:'#F3E2CE', mint:'#E3E6D8', sky:'#E1DED2', butter:'#F6ECD3' }
+};
+function applyPalette(key, save){
+  const p = PALETTES[key]; if(!p) return;
+  const root = document.documentElement.style;
+  root.setProperty('--bg', p.bg);
+  root.setProperty('--pink', p.pink);
+  root.setProperty('--pink-deep', p.pinkDeep);
+  root.setProperty('--lavender', p.lavender);
+  root.setProperty('--peach', p.peach);
+  root.setProperty('--mint', p.mint);
+  root.setProperty('--sky', p.sky);
+  root.setProperty('--butter', p.butter);
+  currentPalette = key;
+  if(save){ try{ localStorage.setItem('settings:palette', key); } catch(e){} }
+  renderPaletteRow();
+  renderHome();
+}
+function renderPaletteRow(){
+  const row = document.getElementById('paletteRow');
+  if(!row) return;
+  row.innerHTML = Object.entries(PALETTES).map(([key,p]) => {
+    const sel = key === currentPalette ? ' selected' : '';
+    return '<button type="button" class="palette-swatch'+sel+'" data-palette="'+key+'">'
+      + '<div class="swatch-dots"><span class="swatch-dot" style="background:'+p.pink+'"></span><span class="swatch-dot" style="background:'+p.sky+'"></span><span class="swatch-dot" style="background:'+p.mint+'"></span></div>'
+      + '<span class="swatch-label">'+p.label+'</span></button>';
+  }).join('');
+  row.querySelectorAll('[data-palette]').forEach(btn => btn.addEventListener('click', () => { applyPalette(btn.dataset.palette, true); showToast('Paleta actualizada.'); }));
+}
+document.getElementById('settingsNameInput').addEventListener('input', function(){
+  settingsName = this.value.trim() || 'Sol';
+  try{ localStorage.setItem('settings:name', settingsName); } catch(e){}
+  renderHome();
+});
+
 function renderAll(){ renderHome(); renderSummary(); renderDebts(); renderIncome(); }
 
 (async function init(){
+  try{ settingsName = localStorage.getItem('settings:name') || 'Sol'; } catch(e){ settingsName = 'Sol'; }
+  try{ currentPalette = localStorage.getItem('settings:palette') || 'rosa'; } catch(e){ currentPalette = 'rosa'; }
+  document.getElementById('settingsNameInput').value = settingsName;
+  applyPalette(currentPalette, false);
+
   selectedAddDate = todayISO();
   document.getElementById('fDate').value = selectedAddDate;
   document.getElementById('iDate').value = todayISO();
