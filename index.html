@@ -5,7 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Centavito">
@@ -35,7 +35,7 @@
     --shadow: 0 6px 24px -10px rgba(27,20,32,0.12);
   }
   *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
+  html,body{margin:0;padding:0; overflow-x:hidden; width:100%; max-width:100%; overscroll-behavior-x:none; touch-action:pan-y;}
   body{
     background: var(--bg);
     color: var(--ink);
@@ -44,8 +44,8 @@
     display:flex; justify-content:center;
   }
   svg{ display:block; }
-  .app{ width:100%; max-width: 480px; min-height:100vh; padding-bottom: 96px; padding-top: max(14px, env(safe-area-inset-top)); }
-  .page{ display:none; padding: 20px 16px 6px; animation: fadeIn 0.2s ease; }
+  .app{ width:100%; max-width: 480px; min-width:0; min-height:100vh; padding-bottom: 96px; padding-top: max(14px, env(safe-area-inset-top)); overflow-x:hidden; }
+  .page{ display:none; padding: 20px 16px 6px; animation: fadeIn 0.2s ease; min-width:0; }
   .page.active{ display:block; }
   @keyframes fadeIn{ from{ opacity:0; transform: translateY(6px);} to{opacity:1; transform:translateY(0);} }
   @media (prefers-reduced-motion: reduce){ .page{ animation:none; } *{ transition:none !important; } }
@@ -62,13 +62,13 @@
 
   .two-col{ display:flex; gap:12px; margin-bottom: 18px; }
   .stat-card{
-    flex:1; background: var(--card); border-radius: 22px; padding: 16px; position:relative;
+    flex:1; min-width:0; background: var(--card); border-radius: 22px; padding: 16px; position:relative;
     box-shadow: var(--shadow); cursor:pointer; text-align:left; border:none; font-family:inherit;
     min-height: 120px; display:flex; flex-direction:column;
   }
   .stat-icon{ width:34px; height:34px; border-radius:11px; display:flex; align-items:center; justify-content:center; color:var(--ink); margin-bottom:14px; }
   .stat-label{ font-size: 12px; color: var(--muted); font-weight:700; }
-  .stat-value{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 19px; font-weight:700; margin-top:3px; }
+  .stat-value{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 19px; font-weight:700; margin-top:3px; white-space:normal; word-break:break-word; overflow-wrap:break-word; }
   .mini-arrow{
     width:30px; height:30px; border-radius:50%; background: var(--pink); border:none; color:var(--ink);
     display:flex; align-items:center; justify-content:center; margin-top:auto; margin-left:auto; cursor:pointer;
@@ -115,12 +115,12 @@
   label:first-of-type{ margin-top:0; }
   input, select{
     width:100%; background: var(--bg); border: 1.5px solid transparent; color: var(--ink);
-    padding: 12px 14px; border-radius: 14px; font-size: 15px; font-family: inherit; outline:none;
+    padding: 12px 14px; border-radius: 14px; font-size: 16px; font-family: inherit; outline:none;
   }
   input:focus, select:focus{ border-color: var(--ink); background:#fff; }
   input[type="number"]{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 19px; }
   .date-field{ background: var(--bg); border-radius:14px; overflow:hidden; width:100%; }
-  .date-field input[type="date"]{ width:100%; max-width:100%; min-width:0; background:transparent; border:none; padding:12px 10px; font-size:14px; -webkit-appearance:none; appearance:none; display:block; }
+  .date-field input[type="date"]{ width:100%; max-width:100%; min-width:0; background:transparent; border:none; padding:12px 10px; font-size:16px; -webkit-appearance:none; appearance:none; display:block; }
   .amount-wrap{ position:relative; }
   .amount-wrap .currency{ position:absolute; left:14px; top:50%; transform:translateY(-50%); color: var(--muted); font-family: ui-monospace, monospace; font-size:19px; font-weight:700;}
   .amount-wrap input{ padding-left: 30px; }
