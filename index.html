@@ -2,6 +2,9 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -309,15 +312,11 @@
       <input type="text" id="fStore" placeholder="Ej. Amazon, Rappi, Éxito...">
 
       <label for="fPayment">App o banco con el que pagaste</label>
-      <select id="fPayment">
-        <option value="Efectivo">Efectivo</option>
-        <option value="Nu Débito">Nu Débito</option>
-        <option value="Nu Crédito">Nu Crédito</option>
-        <option value="Nequi">Nequi</option>
-        <option value="Rappi Crédito">Rappi Crédito</option>
-        <option value="Davibank Crédito">Davibank Crédito</option>
-        <option value="Otro">Otro</option>
-      </select>
+      <input type="text" id="fPayment" list="paymentOptions" placeholder="Ej. Nequi, Efectivo, tu banco...">
+      <datalist id="paymentOptions">
+        <option value="Efectivo"><option value="Tarjeta de débito"><option value="Tarjeta de crédito">
+        <option value="Nequi"><option value="Daviplata"><option value="PayPal">
+      </datalist>
 
       <label>Fecha</label>
       <div class="day-picker" id="dayPicker"></div>
@@ -437,15 +436,7 @@
       <label for="lName">¿A quién le prestas?</label>
       <input type="text" id="lName" placeholder="Nombre de la persona">
       <label for="lPayment">Método de pago (cómo se lo diste)</label>
-      <select id="lPayment">
-        <option value="Efectivo">Efectivo</option>
-        <option value="Nu Débito">Nu Débito</option>
-        <option value="Nu Crédito">Nu Crédito</option>
-        <option value="Nequi">Nequi</option>
-        <option value="Rappi Crédito">Rappi Crédito</option>
-        <option value="Davibank Crédito">Davibank Crédito</option>
-        <option value="Otro">Otro</option>
-      </select>
+      <input type="text" id="lPayment" list="paymentOptions" placeholder="Ej. Nequi, Efectivo, tu banco...">
       <label for="lDate">Fecha</label>
       <div class="date-field"><input type="date" id="lDate"></div>
       <label for="lNote">Nota (opcional)</label>
@@ -981,7 +972,7 @@ async function addLoan(){
   await saveExpenses();
   await saveLoans();
   showToast('Préstamo registrado.');
-  document.getElementById('lAmount').value=''; document.getElementById('lName').value=''; document.getElementById('lPayment').value='Efectivo'; document.getElementById('lNote').value='';
+  document.getElementById('lAmount').value=''; document.getElementById('lName').value=''; document.getElementById('lPayment').value=''; document.getElementById('lNote').value='';
   document.getElementById('lDate').value = todayISO();
 }
 document.getElementById('addLoanBtn').addEventListener('click', addLoan);
@@ -1003,7 +994,7 @@ async function addExpense(){
   const [y,m] = date.split('-').map(Number);
   currentMonth = new Date(y, m-1, 1);
   renderAll(); await saveExpenses(); showToast('Gasto agregado.');
-  amountInput.value=''; document.getElementById('fStore').value=''; document.getElementById('fPayment').value='Efectivo'; document.getElementById('fNote').value='';
+  amountInput.value=''; document.getElementById('fStore').value=''; document.getElementById('fPayment').value=''; document.getElementById('fNote').value='';
   selectedAddDate = todayISO();
   document.getElementById('fDate').value = selectedAddDate;
   document.getElementById('fDateWrap').style.display = 'none';
