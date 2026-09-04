@@ -157,6 +157,16 @@
   .del-x:hover{ color: var(--danger); }
 
   .debt-item{ background: var(--card); border-radius: 18px; padding: 15px; margin-bottom: 12px; box-shadow: var(--shadow); }
+  .wish-item{ background: var(--card); border-radius: 18px; padding: 15px; margin-bottom: 12px; box-shadow: var(--shadow); display:flex; align-items:center; gap:12px; }
+  .wish-item.purchased{ opacity:0.55; }
+  .wish-item .wish-body{ flex:1; min-width:0; }
+  .wish-item .wish-name{ font-size:14.5px; font-weight:700; }
+  .wish-item .wish-name.strike{ text-decoration:line-through; }
+  .wish-item .wish-meta{ font-size:12px; color:var(--muted); margin-top:2px; }
+  .wish-item .wish-price{ font-family: ui-monospace, monospace; font-size:16px; font-weight:700; color: var(--ink) !important; -webkit-text-fill-color: var(--ink) !important; margin-top:4px; }
+  .wish-item .wish-actions{ display:flex; flex-direction:column; gap:6px; align-items:flex-end; flex-shrink:0; }
+  .wish-check-btn{ width:34px; height:34px; border-radius:50%; border:none; background: var(--mint); color: var(--ink); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .wish-check-btn.done{ background: var(--ink); color:#fff; }
   .debt-item.paid{ opacity:0.55; }
   .debt-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
   .debt-name{ font-size: 14.5px; font-weight:700; }
@@ -248,6 +258,11 @@
     <button class="quick-mini" data-goto="page-income" style="width:100%; flex-direction:row; justify-content:center; gap:10px; margin-bottom:18px;">
       <span class="qm-icon" style="background:var(--sky)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h13M13 3l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 17H7M11 13l-4 4 4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
       <span class="qt" style="font-size:13px;">Ingresos y préstamos</span>
+    </button>
+
+    <button class="quick-mini" data-goto="page-wishlist" style="width:100%; flex-direction:row; justify-content:center; gap:10px; margin-bottom:18px;">
+      <span class="qm-icon" style="background:var(--butter)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2.5l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.8-6.2 3.8 1.6-7-5.4-4.7 7.1-.6L12 2.5z" stroke-linejoin="round"/></svg></span>
+      <span class="qt" style="font-size:13px;">Lista de deseos</span>
     </button>
 
     <div class="card" id="homeTopCategoryCard">
@@ -455,6 +470,41 @@
     <div class="card" id="incomeList"><div class="loading">Cargando...</div></div>
   </div>
 
+  <!-- ===== PÁGINA: WISH LIST ===== -->
+  <div class="page" id="page-wishlist">
+    <div class="top-row" style="margin-bottom:10px;">
+      <div class="greeting-name" style="font-size:22px;">Lista de deseos</div>
+    </div>
+
+    <div class="banner">
+      <div class="banner-label">Total en tu lista de deseos</div>
+      <div class="banner-amount" id="wishlistTotal">$0</div>
+    </div>
+
+    <div class="section-head"><h2>Agregar deseo</h2></div>
+    <div class="card">
+      <label for="wName">¿Qué quieres comprar?</label>
+      <input type="text" id="wName" placeholder="Ej. Audífonos, tenis, celular...">
+      <label for="wPrice">Precio aproximado</label>
+      <div class="amount-wrap"><span class="currency">$</span><input type="number" id="wPrice" placeholder="0" inputmode="decimal" step="0.01" min="0"></div>
+      <label for="wStore">Tienda o app</label>
+      <input type="text" id="wStore" placeholder="Ej. Amazon, Falabella, Mercado Libre...">
+      <label for="wNote">Nota (opcional)</label>
+      <input type="text" id="wNote" placeholder="Detalle adicional">
+      <button class="btn-cta" id="addWishBtn">Agregar a la lista
+        <span class="cta-circle"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17L17 7M7 7h10v10" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </button>
+    </div>
+
+    <div class="section-head"><h2>Pendientes</h2></div>
+    <div id="wishlistPendingList"><div class="loading">Cargando...</div></div>
+
+    <div id="wishlistPurchasedSection" style="display:none;">
+      <div class="section-head"><h2>Comprados</h2></div>
+      <div id="wishlistPurchasedList"></div>
+    </div>
+  </div>
+
   <!-- ===== PÁGINA: AJUSTES ===== -->
   <div class="page" id="page-settings">
     <div class="top-row" style="margin-bottom:10px;">
@@ -506,6 +556,10 @@
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h13M13 3l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 17H7M11 13l-4 4 4 4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span class="tab-dot"></span>
     </button>
+    <button class="tab-btn" data-page="page-wishlist">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2.5l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.8-6.2 3.8 1.6-7-5.4-4.7 7.1-.6L12 2.5z" stroke-linejoin="round"/></svg>
+      <span class="tab-dot"></span>
+    </button>
   </div>
 </nav>
 
@@ -516,10 +570,12 @@ const EXPENSES_KEY = 'expenses:list';
 const DEBTS_KEY = 'debts:list';
 const INCOMES_KEY = 'incomes:list';
 const LOANS_KEY = 'loans:list';
+const WISHLIST_KEY = 'wishlist:list';
 let expenses = [];
 let debts = [];
 let incomes = [];
 let loans = [];
+let wishlist = [];
 let currentMonth = new Date();
 currentMonth.setDate(1);
 let searchTerm = '';
@@ -537,6 +593,7 @@ const ICONS = {
   bolt: '<path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z" stroke-linejoin="round"/>',
   book: '<path d="M4 5a2 2 0 012-2h11v16H6a2 2 0 00-2 2V5z" stroke-linejoin="round"/><path d="M17 3v16"/><path d="M7 7h6M7 10h6" stroke-linecap="round"/>',
   sparkle: '<path d="M12 3l1.8 5.4L19 10l-5.2 1.6L12 17l-1.8-5.4L5 10l5.2-1.6L12 3z" stroke-linejoin="round"/>',
+  star: '<path d="M12 2.5l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.8-6.2 3.8 1.6-7-5.4-4.7 7.1-.6L12 2.5z" stroke-linejoin="round"/>',
   exchange: '<path d="M4 7h13M13 3l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 17H7M11 13l-4 4 4 4" stroke-linecap="round" stroke-linejoin="round"/>',
   trend: '<path d="M3 17l6-6 4 4 8-8" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 7h6v6" stroke-linecap="round" stroke-linejoin="round"/>',
   receipt: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z" stroke-linejoin="round"/><path d="M9 8h6M9 12h6M9 16h4" stroke-linecap="round"/>'
@@ -607,11 +664,13 @@ async function loadAll(){
   try{ debts = JSON.parse(localStorage.getItem(DEBTS_KEY) || '[]'); } catch(e){ debts = []; }
   try{ incomes = JSON.parse(localStorage.getItem(INCOMES_KEY) || '[]'); } catch(e){ incomes = []; }
   try{ loans = JSON.parse(localStorage.getItem(LOANS_KEY) || '[]'); } catch(e){ loans = []; }
+  try{ wishlist = JSON.parse(localStorage.getItem(WISHLIST_KEY) || '[]'); } catch(e){ wishlist = []; }
 }
 async function saveExpenses(){ try{ localStorage.setItem(EXPENSES_KEY, JSON.stringify(expenses)); } catch(e){ showToast('No se pudo guardar en este dispositivo.'); } }
 async function saveDebts(){ try{ localStorage.setItem(DEBTS_KEY, JSON.stringify(debts)); } catch(e){ showToast('No se pudo guardar en este dispositivo.'); } }
 async function saveIncomes(){ try{ localStorage.setItem(INCOMES_KEY, JSON.stringify(incomes)); } catch(e){ showToast('No se pudo guardar en este dispositivo.'); } }
 async function saveLoans(){ try{ localStorage.setItem(LOANS_KEY, JSON.stringify(loans)); } catch(e){ showToast('No se pudo guardar en este dispositivo.'); } }
+async function saveWishlist(){ try{ localStorage.setItem(WISHLIST_KEY, JSON.stringify(wishlist)); } catch(e){ showToast('No se pudo guardar en este dispositivo.'); } }
 
 /* ---------- Day quick-picker (Agregar gasto) ---------- */
 function buildDayPicker(){
@@ -1009,7 +1068,7 @@ document.getElementById('nextMonth').addEventListener('click', () => { currentMo
 
 /* ---------- Respaldo: exportar / importar ---------- */
 function exportData(){
-  const payload = { app: 'Centavito', exportedAt: new Date().toISOString(), expenses, debts, incomes, loans };
+  const payload = { app: 'Centavito', exportedAt: new Date().toISOString(), expenses, debts, incomes, loans, wishlist };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1035,8 +1094,9 @@ function handleImportFile(e){
       debts = Array.isArray(data.debts) ? data.debts : [];
       incomes = Array.isArray(data.incomes) ? data.incomes : [];
       loans = Array.isArray(data.loans) ? data.loans : [];
+      wishlist = Array.isArray(data.wishlist) ? data.wishlist : [];
       renderAll();
-      await saveExpenses(); await saveDebts(); await saveIncomes(); await saveLoans();
+      await saveExpenses(); await saveDebts(); await saveIncomes(); await saveLoans(); await saveWishlist();
       showToast('Datos importados correctamente.');
     } catch(err){
       showToast('El archivo no es un respaldo válido.');
@@ -1121,7 +1181,75 @@ function renderMonthlyHistory(){
       + '</div>';
   }).join('');
 }
-function renderAll(){ renderHome(); renderSummary(); renderDebts(); renderIncome(); renderMonthlyHistory(); }
+/* ---------- Wish list ---------- */
+function wishItemHtml(w){
+  const isPurchased = !!w.purchased;
+  return '<div class="wish-item '+(isPurchased?'purchased':'')+'">'
+    + '<button class="wish-check-btn '+(isPurchased?'done':'')+'" data-toggle-wish="'+w.id+'" aria-label="Marcar como comprado">'
+    + (isPurchased
+        ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+        : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/></svg>')
+    + '</button>'
+    + '<div class="wish-body">'
+    + '<div class="wish-name'+(isPurchased?' strike':'')+'">'+escapeHtml(w.name)+'</div>'
+    + (w.store ? '<div class="wish-meta">'+escapeHtml(w.store)+(w.note?' · '+escapeHtml(w.note):'')+'</div>' : (w.note ? '<div class="wish-meta">'+escapeHtml(w.note)+'</div>' : ''))
+    + '<div class="wish-price">'+fmtMoney(w.price)+'</div>'
+    + '</div>'
+    + '<div class="wish-actions"><button class="del-x" data-delete-wish="'+w.id+'" aria-label="Eliminar">✕</button></div>'
+    + '</div>';
+}
+function attachWishListeners(container){
+  container.querySelectorAll('[data-toggle-wish]').forEach(btn => btn.addEventListener('click', () => toggleWishPurchased(btn.dataset.toggleWish)));
+  container.querySelectorAll('[data-delete-wish]').forEach(btn => btn.addEventListener('click', () => deleteWish(btn.dataset.deleteWish)));
+}
+function renderWishlist(){
+  const totalEl = document.getElementById('wishlistTotal');
+  if(!totalEl) return;
+  const pending = wishlist.filter(w => !w.purchased).sort((a,b)=> b.id.localeCompare(a.id));
+  const purchased = wishlist.filter(w => w.purchased).sort((a,b)=> b.id.localeCompare(a.id));
+  const total = pending.reduce((s,w)=> s + w.price, 0);
+  totalEl.textContent = fmtMoney(total);
+
+  const pendingEl = document.getElementById('wishlistPendingList');
+  if(pending.length === 0){
+    pendingEl.innerHTML = '<div class="card"><div class="empty-state">'+mascot(64)+'<p>Aún no has agregado nada a tu lista de deseos.</p></div></div>';
+  } else {
+    pendingEl.innerHTML = pending.map(wishItemHtml).join('');
+    attachWishListeners(pendingEl);
+  }
+
+  const purchasedSection = document.getElementById('wishlistPurchasedSection');
+  const purchasedEl = document.getElementById('wishlistPurchasedList');
+  if(purchased.length === 0){
+    purchasedSection.style.display = 'none';
+  } else {
+    purchasedSection.style.display = 'block';
+    purchasedEl.innerHTML = purchased.map(wishItemHtml).join('');
+    attachWishListeners(purchasedEl);
+  }
+}
+async function addWish(){
+  const name = document.getElementById('wName').value.trim();
+  const price = parseFloat(document.getElementById('wPrice').value);
+  const store = document.getElementById('wStore').value.trim();
+  const note = document.getElementById('wNote').value.trim();
+  if(!name){ showToast('Escribe qué quieres comprar.'); return; }
+  if(!price || price <= 0){ showToast('Ingresa un precio válido.'); return; }
+  wishlist.push({ id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), name, price, store, note, purchased:false, dateAdded: todayISO() });
+  renderWishlist(); await saveWishlist(); showToast('Agregado a tu lista de deseos.');
+  document.getElementById('wName').value=''; document.getElementById('wPrice').value=''; document.getElementById('wStore').value=''; document.getElementById('wNote').value='';
+}
+document.getElementById('addWishBtn').addEventListener('click', addWish);
+async function toggleWishPurchased(id){
+  const w = wishlist.find(x => x.id === id);
+  if(!w) return;
+  w.purchased = !w.purchased;
+  renderWishlist(); await saveWishlist();
+  showToast(w.purchased ? '¡Comprado! 🎉' : 'De vuelta en pendientes.');
+}
+async function deleteWish(id){ wishlist = wishlist.filter(w => w.id !== id); renderWishlist(); await saveWishlist(); showToast('Eliminado de la lista.'); }
+
+function renderAll(){ renderHome(); renderSummary(); renderDebts(); renderIncome(); renderMonthlyHistory(); renderWishlist(); }
 
 (async function init(){
   try{ settingsName = localStorage.getItem('settings:name') || 'Sol'; } catch(e){ settingsName = 'Sol'; }
